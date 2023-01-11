@@ -7,13 +7,22 @@
     "build": "vue-cli-service build"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^6.2.1",
+    "@fortawesome/free-solid-svg-icons": "^6.2.1",
+    "@fortawesome/vue-fontawesome": "^3.0.0-5",
+    "bootstrap": "^5.2.3",
+    "bootstrap-vue": "^2.23.1",
     "core-js": "^3.8.3",
-    "vue": "^3.2.13",
+    "date-fns": "^2.29.3",
+    "firebase": "^9.15.0",
+    "modal-vue": "^0.0.3",
+    "usemodal-vue3": "^0.3.7",
+    "vue": "^3.2.45",
     "vue-router": "^4.0.3"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~5.0.0",
     "@vue/cli-plugin-router": "~5.0.0",
-    "@vue/cli-service": "~5.0.0"
+    "@vue/cli-service": "^5.0.8"
   }
 }
