@@ -355,6 +355,11 @@
             </div>
         </div>
     </div>
+
+    <!-- Success Modal -->
+    <div v-if="showSuccessModal">
+        <SuccessModal></SuccessModal>    
+    </div>
             
     <!-- The form -->
     <div v-if="showModal">
@@ -396,6 +401,7 @@ export default {
         const associationId = ref('')
         const message = ref('')
         const { logout } = useLogout()
+        const showSuccessModal = ref(false)
 
         const handleClick = async () => {
             await logout()
@@ -407,7 +413,7 @@ export default {
 
         const handleSubmitPassword = async () => {
             if (accessPassword.value === "bien") {
-                router.push({ name: 'Association', params: {id: associationId.value} })
+                router.push({ name: 'Association', params: {associationId: associationId.value} })
             }else{
                 showEntryAssociationModal.value = false
                 message.value = "Accès refusé, mot de passe erroné !"
@@ -428,11 +434,16 @@ export default {
             if (!error.value) {
                 error.value = ''
                 success.value = "Nouvelle association créée avec succès !"
-                showForm = false
+                showForm.value = false
             }else {
                 success.value = ''
-                showForm = false
+                showForm.value = false
             }
+
+            associationName.value = ''
+            associationCountry.value = ''
+            associationAddresse.value = ''
+            associationMeetingDate.value = ''
 
         }
 

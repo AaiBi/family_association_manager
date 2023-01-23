@@ -8,18 +8,18 @@
                 <div class="card">
                     <div class="card-header text-center">
                         <h2 class="card-title">
-                            {{ association.associationName }}
+                            {{ association.associationName }} ({{ association.associationCountry }})
                         </h2>
                     </div>
                     <div class="card-body">
 
-                        <div class="error" v-if="error">
+                        <div class="error" v-if="errorUseCollection || errorGetDocument || errorGetCollection">
                             <div class="alert alert-danger" role="alert">
-                                {{ error }}
+                                {{ errorUseCollection || errorGetDocument || errorGetCollection }}
                             </div>
                         </div>
 
-                        <button class="btn btn-secondary" v-if="!showForm" @click="showForm=true">
+                        <button class="btn btn-secondary" v-if="!showForm" @click="showForm=true; showTable=false;">
                             Ajouter un nouveau membre
                         </button><br><br>
                         
@@ -51,12 +51,17 @@
                                         v-model="memberAmount" required>
                                 </div>
                             </div>
-                            <button class="btn btn-secondary">Ajouter</button>
+                            <div class="col-sm-6" align="center">
+                                <button class="btn btn-danger" @click="showForm=false; showTable=true;">Annuler</button>
+                            </div>
+                            <div class="col-sm-6" align="center">
+                                <button class="btn btn-secondary">Ajouter</button>
+                            </div>
                         </form>
 
                         <hr>
 
-                        <div v-if="members && showTable">
+                        <div v-if="membersList && showTable">
                             <table class="table table-striped table-hover">
                                 <thead>
                                     <tr align="center">
@@ -69,7 +74,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="member in formattedDocuments" :key="member.id" align="center">
+                                    <tr v-for="member in membersList" :key="member.id" align="center">
                                         <td>{{ member.memberFirstname }}</td>
                                         <td>{{ member.memberLastname }}</td>
                                         <td>{{ member.memberPhoneNumber }}</td>
@@ -89,13 +94,13 @@
                                     </tr>
                                 </tbody>
                             </table>
-                        </div>   
+                        </div>
                         
                         <div v-if="showEditMemberForm">
                             <div class="card">
                                 <div class="card-body">
                                     <div class="card-title"></div>
-                                    <form class="row" @submit.prevent="handleSubmit">
+                                    <form class="row">
                                         <div class="col-sm-6">
                                             <div class="mb-3">
                                                 <input type="text" class="form-control" required placeholder="Nom" v-model="memberFirstname">
@@ -137,7 +142,7 @@
 
     <!-- Success Modal -->
     <div v-if="showSuccessModal">
-        <SuccessModal :successMessage="message"></SuccessModal>    
+        <SuccessModal></SuccessModal>    
     </div>
 
 </template>
@@ -151,17 +156,19 @@ import useCollection from '@/composables/useCollection'
 import { timestamp } from '@/firebase/config'
 import { formatDistanceToNow } from 'date-fns'
 import getDocument from '@/composables/getDocument'
-import { doc, deleteDoc, getFirestore, updateDoc } from "firebase/firestore"
+import { 
+    doc, deleteDoc, getFirestore, updateDoc, collection, query, getDocFromCache, get, getDocs, onSnapshot , where
+} from "firebase/firestore"
+import { projectFirestore } from "@/firebase/config";
 
 export default {
-    props: ['id'],
+    props: ['associationId'],
     components: {
         SideBarMenu, SuccessModal
     },
     setup (props) {
-        const { documents: members } = getCollection('members', ['associationId', '==', props.id])
-        const { document: association } = getDocument('associations', props.id)
-        const memberId = ref('')
+        //const { documents: members, error: errorGetCollection } = getCollection('members', ['associationId', '==', props.id])
+        const { document: association, error: errorGetDocument } = getDocument('associations', props.associationId)
         const memberFirstname = ref('')
         const memberLastname = ref('')
         const memberPhoneNumber = ref('')
@@ -169,23 +176,24 @@ export default {
         const memberAmount = ref('')
         const showForm = ref(false)
         const showSuccessModal = ref(false)
-        const { addDoc, error } = useCollection('members')
-        const message = ref('')
-        const db = getFirestore()
+        const { addDoc, error: errorUseCollection } = useCollection('members')
         const showTable = ref(true)
         const showEditMemberForm = ref(false)
 
-        const formattedDocuments = computed(() => {
-            if (members.value) {
-                return members.value.map(doc => {
-                    let time = formatDistanceToNow(doc.createdAt.toDate())
-                    return { ...doc, createdAt: time }
-                })
-            }
+        // get members subcollection from the collection 'associations'
+        const membersList = ref(null)
+        const messageRef = collection(projectFirestore, "associations", props.associationId,"members");
+        onSnapshot(messageRef, (snapshot) => {
+            let members = []
+            snapshot.docs.forEach((doc) => {
+                members.push({ ...doc.data(), id:doc.id })
+            })
+            membersList.value = members
         })
 
+        // update a doc from members subcolletcion
         const updateDocument = async (docId) => {
-            const docRef = doc(db, "members", docId);
+            const docRef = doc(projectFirestore, "associations", props.associationId, "members", docId);
             const data = {
                 memberFirstname: memberFirstname.value,
                 memberLastname: memberLastname.value,
@@ -203,51 +211,44 @@ export default {
             })
             showEditMemberForm.value = false
             showTable.value = true
-        }
-
-        const deleteDocument = async (docId) => {
-            if(confirm('Êtes-vous sûr de vouloir supprimer ce membre ?')){
-                await deleteDoc(doc(db, "members", docId));
-                showSuccessModal.value = true;
-                
-            }
-        }
-
-        const handleSubmit = async () => {
-            const newMember = {
-                memberFirstname: memberFirstname.value,
-                memberLastname: memberLastname.value,
-                memberPhoneNumber: memberPhoneNumber.value,
-                memberAddresse: memberAddresse.value,
-                memberAmount: memberAmount.value,
-                associationId: props.id,
-                createdAt: timestamp()
-            }
-
-            await addDoc(newMember)
-
-            if (!error.value) {
-                error.value = ''
-                message.value = "Nouveau membre ajouté avec succès !"
-                showForm.value = false
-                showSuccessModal.value = true
-            }else {
-                success.value = ''
-                showForm = false
-            }
-
             memberFirstname.value = ''; 
             memberLastname.value = ''; 
             memberPhoneNumber.value = ''; 
             memberAddresse.value = ''; 
             memberAmount.value = ''; 
+        }
 
+        // delete a doc from members subcolletcion
+        const deleteDocument = async (docId) => {
+            if(confirm('Êtes-vous sûr de vouloir supprimer ce membre ?')){
+                await deleteDoc(doc(projectFirestore, "associations", props.associationId, "members", docId));
+                showSuccessModal.value = true;
+            }
+        }
+
+        const handleSubmit = async () => {
+            projectFirestore.collection('associations').doc(props.associationId).collection('members').add({
+                memberFirstname: memberFirstname.value,
+                memberLastname: memberLastname.value,
+                memberPhoneNumber: memberPhoneNumber.value,
+                memberAddresse: memberAddresse.value,
+                memberAmount: memberAmount.value,
+                createdAt: timestamp()
+            })
+            
+            memberFirstname.value = ''; 
+            memberLastname.value = ''; 
+            memberPhoneNumber.value = ''; 
+            memberAddresse.value = ''; 
+            memberAmount.value = ''; 
+            showForm.value = false
+            showTable.value = true
         }
 
         return {
-            error, memberFirstname, memberLastname, memberPhoneNumber, memberAddresse, memberAmount, showForm, association, 
-            handleSubmit, showSuccessModal, message, members, formattedDocuments, memberId, deleteDocument, showTable,
-            showEditMemberForm, updateDocument
+            memberFirstname, memberLastname, memberPhoneNumber, memberAddresse, memberAmount, showForm, showSuccessModal,
+            updateDocument, showEditMemberForm, showTable, handleSubmit, deleteDocument, association,
+            errorGetDocument, errorUseCollection, membersList
         }
     }   
 }

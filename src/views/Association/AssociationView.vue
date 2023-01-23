@@ -30,12 +30,12 @@ import ErrorModal from '@/components/modal/ErrorModal'
 import getDocument from '@/composables/getDocument'
 
 export default {
-    props: ['id'],
+    props: ['associationId'],
     components: {
         SideBarMenu, SuccessModal, ErrorModal
     },
     setup (props) {
-        const { error, document: association } = getDocument('associations', props.id)
+        const { error, document: association } = getDocument('associations', props.associationId)
 
         return {
             association, error

@@ -5,6 +5,7 @@ import AssociationView from '@/views/Association/AssociationView.vue'
 import MembersView from '@/views/Association/MembersView.vue'
 import { projectAuth } from '@/firebase/config'
 import MeetingView from '@/views/meeting/MeetingView.vue'
+import NewMeetingView from '@/views/meeting/NewMeetingView.vue'
 
 // route guard
 const requiredAuth = (to, from, next) => {
@@ -29,33 +30,33 @@ const routes = [
     beforeEnter: requiredAuth
   },
   {
-    path: '/Association/:id/members',
+    path: '/Association/:associationId/members',
     name: 'members',
     component: MembersView,
     beforeEnter: requiredAuth,
     props: true
   },
   {
-    path: '/Association/:id/home',
+    path: '/Association/:associationId/home',
     name: 'Association',
     component: AssociationView,
     beforeEnter: requiredAuth,
     props: true
   },
   {
-    path: '/Meeting/:id/meeting_home',
+    path: '/Meeting/:associationId/meeting_home',
     name: 'Meetings',
     component: MeetingView,
     beforeEnter: requiredAuth,
     props: true
   },
-  // {
-  //   path: '/Meeting/:id',
-  //   name: 'NewMeeting',
-  //   component: NewMeetingView,
-  //   beforeEnter: requiredAuth,
-  //   props: true
-  // },
+  {
+    path: '/Association/:associationId/Meeting/:meetingId',
+    name: 'NewMeeting',
+    component: NewMeetingView,
+    beforeEnter: requiredAuth,
+    props: true
+  },
 ]
 
 const router = createRouter({

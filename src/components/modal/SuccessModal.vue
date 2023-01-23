@@ -16,9 +16,6 @@ import { ref } from '@vue/reactivity';
 import checked from "@/assets/checked.png"
 
 export default {
-  name: "SuccessdModal",
-  props: ['successMessage'],
-
   setup() {
     const show = ref(true)
     
