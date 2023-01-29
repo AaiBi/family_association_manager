@@ -7,7 +7,7 @@
         <h2>Connexion</h2>
         <p></p>
         <LoginForm @login="enterUserAccount" />
-        <p>Pas encore de compte utilisateur ? <span @click="showLogin=false">S'inscription</span> </p>
+        <!-- <p>Pas encore de compte utilisateur ? <span @click="showLogin=false">S'inscrire</span> </p> -->
       </div>
       <div v-else>
         <h2>Inscription</h2>

@@ -9,7 +9,7 @@
         <p></p>
         <div class="error">{{ error }}</div>
         <p></p>
-        <button class="btn btn-info">Se connecter</button>
+        <button class="btn btn-secondary">Se connecter</button>
         <p></p>
     </form>
 </template>

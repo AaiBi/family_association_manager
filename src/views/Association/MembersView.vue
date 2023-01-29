@@ -74,7 +74,9 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="member in membersList" :key="member.id" align="center">
+                                    <tr 
+                                        v-for="member in membersList" :key="member.id" align="center" type="button" 
+                                        @click="openMemberDetails(member.id)">
                                         <td>{{ member.memberFirstname }}</td>
                                         <td>{{ member.memberLastname }}</td>
                                         <td>{{ member.memberPhoneNumber }}</td>
@@ -150,12 +152,10 @@
 <script>
 import SideBarMenu from '@/components/menu/SideBarMenu.vue'
 import SuccessModal from '@/components/modal/SuccessModal'
-import getCollection from '@/composables/getCollection'
 import { computed, ref } from 'vue'
-import useCollection from '@/composables/useCollection'
 import { timestamp } from '@/firebase/config'
-import { formatDistanceToNow } from 'date-fns'
 import getDocument from '@/composables/getDocument'
+import { useRouter } from 'vue-router'
 import { 
     doc, deleteDoc, getFirestore, updateDoc, collection, query, getDocFromCache, get, getDocs, onSnapshot , where
 } from "firebase/firestore"
@@ -167,7 +167,6 @@ export default {
         SideBarMenu, SuccessModal
     },
     setup (props) {
-        //const { documents: members, error: errorGetCollection } = getCollection('members', ['associationId', '==', props.id])
         const { document: association, error: errorGetDocument } = getDocument('associations', props.associationId)
         const memberFirstname = ref('')
         const memberLastname = ref('')
@@ -176,9 +175,13 @@ export default {
         const memberAmount = ref('')
         const showForm = ref(false)
         const showSuccessModal = ref(false)
-        const { addDoc, error: errorUseCollection } = useCollection('members')
         const showTable = ref(true)
         const showEditMemberForm = ref(false)
+        const router = useRouter()
+
+        const openMemberDetails = async (memberId) => {
+            router.push({ name: 'MemberInfos', params: {associationId: props.associationId, memberId: memberId} })
+        }
 
         // get members subcollection from the collection 'associations'
         const membersList = ref(null)
@@ -247,8 +250,8 @@ export default {
 
         return {
             memberFirstname, memberLastname, memberPhoneNumber, memberAddresse, memberAmount, showForm, showSuccessModal,
-            updateDocument, showEditMemberForm, showTable, handleSubmit, deleteDocument, association,
-            errorGetDocument, errorUseCollection, membersList
+            updateDocument, showEditMemberForm, showTable, handleSubmit, deleteDocument, association, openMemberDetails,
+            errorGetDocument, membersList
         }
     }   
 }

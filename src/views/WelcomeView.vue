@@ -5,14 +5,14 @@
                 <div class="card">
                     <div class="card-header text-center">
                         <h2 class="card-title">
-                            Bienvenue sur l'application de gestion des différentes Associations de Pellel Malal
+                            Bienvenue dans l'application de gestion des différentes Associations de Pellel Malal
                         </h2>
                     </div>
                     <div class="card-body">
 
-                        <button class="btn btn-secondary" v-if="!showForm" @click="showForm=true">
+                        <!-- <button class="btn btn-secondary" v-if="!showForm" @click="showForm=true">
                             Ajouter une nouvelle Association
-                        </button><br>
+                        </button><br> -->
                         
                         <form class="row" @submit.prevent="handleSubmit" v-if="showForm">
                             <div class="col-sm-6">

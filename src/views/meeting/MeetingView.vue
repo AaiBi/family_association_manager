@@ -13,9 +13,21 @@
                     </div>
                     <div class="card-body">
                         
-                        <button class="btn btn-secondary" v-if="!showForm" @click="showForm=true" style="float:right; margin-bottom: 50px;">
-                            Nouvelle réunion
-                        </button>
+                        <div v-if="meetingsList">
+                            <div v-for="meeting in meetingsList" :key="meeting.id">
+                                <div v-if="meeting.createdAt.toDate().getMonth() === nowMonth">
+                                    <div style="display: none">
+                                        {{ meetingPresence=true }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div v-if="!meetingPresence" style="margin-bottom: 100px;">
+                            <button class="btn btn-secondary" v-if="!showForm" @click="showForm=true" style="float:right;">
+                                Nouvelle réunion
+                            </button>
+                        </div>
                         
                         <div class="card form-card" v-if="showForm">
                             <form @submit.prevent="handleSubmitNewMeeting">
@@ -45,20 +57,22 @@
                             
                         </div>
 
-                        <!-- <div class="row" v-if="meetings && !showForm" style="margin-top: 100px">
+                        <div class="row" v-if="meetingsList && !showForm">
 
-                            <div class="col-sm-4" v-for="meeting in formattedDocuments" :key="meeting.id">
-                                <div class="card text-white bg-secondary mb-3" style="max-width: 18rem;">
-                                    <div class="card-header">{{ meeting.createdAt }}</div>
-                                    <div class="card-body">
-                                        <p class="card-text">
-                                            {{ meeting.subjects }}
-                                        </p>
+                            <div class="col-sm-4" v-for="meeting in meetingsList" :key="meeting.id">
+                                <div type="button" @click="openMeeting(meeting.id)">
+                                    <div class="card text-white bg-secondary mb-3" style="max-width: 18rem;">
+                                        <div class="card-header">{{meeting.createdAt.toDate().toLocaleString("fr")}}</div>
+                                        <div class="card-body">
+                                            <p class="card-text">
+                                                {{ meeting.subjects }}
+                                            </p>
+                                        </div>
                                     </div>
-                                </div>
+                                </div>   
                             </div>
 
-                        </div> -->
+                        </div>
 
                     </div>
                 </div>
@@ -84,7 +98,7 @@ import { timestamp } from '@/firebase/config'
 import { formatDistanceToNow } from 'date-fns'
 import { useRouter } from 'vue-router'
 import { 
-    doc, deleteDoc, getFirestore, updateDoc, collection, query, getDocFromCache, get, getDocs, onSnapshot , where
+    doc, deleteDoc, getFirestore, updateDoc, collection, query, getDocFromCache, get, getDocs, onSnapshot , where, orderBy
 } from "firebase/firestore"
 import { projectFirestore } from "@/firebase/config";
 
@@ -94,9 +108,6 @@ export default {
         SideBarMenu, SuccessModal
     },
     setup (props) {
-        const { 
-            error: errorGetCollection, documents: meetings 
-        } = getCollection('meetings', ['associationId', '==', props.associationId])
         const { error: errorGetDocument, document: association } = getDocument('associations', props.associationId)
         const showForm = ref(false)
         const showSuccessModal = ref(false)
@@ -104,6 +115,25 @@ export default {
         const subjects = ref('')
         const router = useRouter()
         const meetingId = ref('')
+        const nowDate = new Date();
+        const nowMonth = nowDate.getMonth()
+        const month = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"]
+        const monthName = month[nowDate.getMonth()];
+        const nowYear = nowDate.getFullYear()
+
+        // get meetings subcollection from the collection 'associations'
+        const meetingsList = ref(null)
+        const associationMeetings = collection(
+            projectFirestore, "associations", props.associationId, "meetings"
+        )
+        const q = query(associationMeetings, orderBy("createdAt", "desc"))
+        onSnapshot(q, (snapshot) => {
+            let meetings = []
+            snapshot.docs.forEach((doc) => {
+                meetings.push({ ...doc.data(), id:doc.id })
+            })
+            meetingsList.value = meetings
+        })
 
         // get members subcollection from the collection 'associations'
         const membersList = ref(null)
@@ -119,45 +149,47 @@ export default {
         // Add meeting subcollection
         const handleSubmitNewMeeting = async () => {
             if(confirm("Êtes-vous sûr de vouloir commencer une nouvelle reunion ?")){
-                projectFirestore.collection('associations').doc(props.associationId).collection('meetings').add({
-                    subjects: subjects.value,
-                    createdAt: timestamp()
-                })
-                .then(function(docRef) {
-                    
-                    for (const doc of membersList.value) {
-                        projectFirestore.collection('associations').doc(props.associationId).collection('meetings')
-                        .doc(docRef.id).collection('payments').add({
-                            memberFirstname: doc.memberFirstname,
-                            memberLastname: doc.memberLastname,
-                            memberPhoneNumber: doc.memberPhoneNumber,
-                            memberAddresse: doc.memberAddresse,
-                            memberAmount: doc.memberAmount,
-                            payment: false,
-                            delay: false,
-                            absence: false,
-                            createdAt: timestamp()
-                        })
-                    }
+                
+            projectFirestore.collection('associations').doc(props.associationId).collection('meetings').add({
+                subjects: subjects.value,
+                createdAt: timestamp()
+            })
+            .then(function(docRef) {
+                for (const doc of membersList.value) {
+                    projectFirestore.collection('associations').doc(props.associationId).collection('meetings')
+                    .doc(docRef.id).collection('payments').add({
+                        memberFirstname: doc.memberFirstname,
+                        memberLastname: doc.memberLastname,
+                        memberPhoneNumber: doc.memberPhoneNumber,
+                        memberAddresse: doc.memberAddresse,
+                        memberAmount: doc.memberAmount,
+                        createdMonth: monthName,
+                        createdYear: nowYear,
+                        payment: false,
+                        delay: false,
+                        absence: false,
+                        createdAt: timestamp()
+                    })
+                }
 
-                    router.push({ name: 'NewMeeting', params: {associationId:props.associationId, meetingId: docRef.id} })
-                })
+                router.push({ name: 'NewMeeting', params: {associationId:props.associationId, meetingId: docRef.id} })
+            })
                 
             }
         }
 
-        const formattedDocuments = computed(() => {
-            if (members.value) {
-                return members.value.map(doc => {
-                    let time = formatDistanceToNow(doc.createdAt.toDate())
-                    return { ...doc, createdAt: time }
-                })
-            }
-        })
+        const openMeeting = async (meetingId) => {
+            router.push({ name: 'NewMeeting', params: {associationId: props.associationId, meetingId: meetingId} })
+        }
 
         return {
-            association, errorGetCollection, meetings, errorGetDocument, showForm, subjects, errorUseCollection, showSuccessModal, 
-            formattedDocuments, handleSubmitNewMeeting, membersList
+            association, errorGetDocument, showForm, subjects, errorUseCollection, showSuccessModal, meetingsList, nowMonth,
+            handleSubmitNewMeeting, membersList, meetingPresence: false, openMeeting
+        }
+    },
+    methods: {
+        getHumanDate : function (date) {
+            return moment(date).format("MMM Do YYYY");
         }
     }
 }

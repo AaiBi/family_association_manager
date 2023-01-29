@@ -7,16 +7,24 @@
             <div class="col-sm-10">
                 <div class="card">
                     <div class="card-header text-center">
-                        <h2 class="card-title">
-                            Réunion du 
-                        </h2>
+                        <h1 class="card-title">
+                            Réunion du {{ meeting.createdAt.toDate().toLocaleString("fr") }}
+                        </h1>
                     </div>
+
+                    <p></p>
+
                     <div class="card-body">
 
-                        <div v-if="membersPaymentList">
-                            <div class="card-header">
-                                <h4>Cocher les présences et payements</h4>
+                        <div class="card">
+                            <div class="card-header bg-secondary text-white">
+                                <h3>{{ meeting.subjects }}</h3>
                             </div>
+                        </div>
+
+                        <p></p>
+
+                        <div v-if="membersPaymentList">
                             <div class="card-block p-0">
                                 <table class="table table-bordered">
                                     <thead class="">
@@ -54,7 +62,7 @@
                                             <td>
                                                 <div v-if="member.delay==false">
                                                     <button class="btn btn-success" @click="updateDelayDocument(member.id, delayValue=true)">
-                                                        Oui
+                                                        Oui 
                                                     </button>
                                                 </div>
                                                 <div v-else>
@@ -105,7 +113,7 @@ import { timestamp } from '@/firebase/config'
 import { formatDistanceToNow } from 'date-fns'
 import { useRouter } from 'vue-router'
 import { 
-    doc, deleteDoc, getFirestore, updateDoc, collection, query, getDocFromCache, get, getDocs, onSnapshot , where
+    doc, deleteDoc, updateDoc, collection, query, getDocFromCache, get, getDocs, onSnapshot , where
 } from "firebase/firestore"
 import { projectFirestore } from "@/firebase/config";
 
@@ -115,15 +123,19 @@ export default {
         SideBarMenu, SuccessModal
     },
     setup (props) {
-        const { document: meeting } = getDocument('meetings', props.meetingId)
-        const { documents: members } = getCollection('members')
         const showForm = ref(false)
         const showSuccessModal = ref(false)
         const router = useRouter()
+        const meeting = ref(null)
+        
+        // getting a meeting doc
+        const meetingRef = projectFirestore
+            .collection('associations').doc(props.associationId).collection("meetings").doc(props.meetingId)
+        meetingRef.onSnapshot(doc => {
+            meeting.value = {...doc.data(), id: doc.id}
+        })
 
-        const paymentRef = collection(projectFirestore, 'payments')
-
-        // get members subcollection from the collection 'associations'
+        // get payments subcollection from the collection 'associations'
         const membersPaymentList = ref(null)
         const membersPaymentRef = collection(
             projectFirestore, "associations", props.associationId, "meetings", props.meetingId, "payments"
@@ -136,7 +148,7 @@ export default {
             membersPaymentList.value = members
         })
 
-        // update a doc from payments subcolletcion
+        // update the payment value from payments subcolletcion
         const updateDocument = async (docId, paymentValue) => {
             const docRef = doc(
                 projectFirestore, "associations", props.associationId, "meetings", props.meetingId, "payments", docId
@@ -154,7 +166,7 @@ export default {
             })
         }
 
-        // update a doc from payments subcolletcion
+        // update the absence value from payments subcolletcion
         const updateAbsenceDocument = async (docId, absenceValue) => {
             const docRef = doc(
                 projectFirestore, "associations", props.associationId, "meetings", props.meetingId, "payments", docId
@@ -172,7 +184,7 @@ export default {
             })
         }
 
-        // update a doc from payments subcolletcion
+        // update the delay value from payments subcolletcion
         const updateDelayDocument = async (docId, delayValue) => {
             const docRef = doc(
                 projectFirestore, "associations", props.associationId, "meetings", props.meetingId, "payments", docId
@@ -191,8 +203,7 @@ export default {
         }
 
         return {
-            showForm, showSuccessModal, meeting, members, membersPaymentList, meeting, updateDocument, updateAbsenceDocument,
-            updateDelayDocument
+            showForm, showSuccessModal, membersPaymentList, updateDocument, updateAbsenceDocument, updateDelayDocument, meeting
         }
     }
 }
