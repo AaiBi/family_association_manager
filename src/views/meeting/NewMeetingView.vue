@@ -18,7 +18,7 @@
 
                         <div class="card">
                             <div class="card-header bg-secondary text-white">
-                                <h3>{{ meeting.subjects }}</h3>
+                                <h3>Thème: {{ meeting.subjects }}</h3>
                             </div>
                         </div>
 
@@ -39,22 +39,27 @@
                                     </thead>
                                     <tbody>
                                         <tr v-for="member in membersPaymentList" :key="member.id" align="center">
-
-                                            <td>{{ member.memberFirstname }}</td>
-                                            <td>{{ member.memberLastname }}</td>
-                                            <td>{{ member.memberPhoneNumber }}</td>
+                                            <td type="button" @click="openMemberDetails(member.memberId)">
+                                                {{ member.memberFirstname }}
+                                            </td>
+                                            <td type="button" @click="openMemberDetails(member.memberId)">
+                                                {{ member.memberLastname }}
+                                            </td>
+                                            <td type="button" @click="openMemberDetails(member.memberId)">
+                                                {{ member.memberPhoneNumber }}
+                                            </td>
                                             <td>
-                                                <div v-if="member.absence==false">
+                                                <div v-if="member.presence==false">
                                                     <button 
                                                         class="btn btn-success" 
-                                                        @click="updateAbsenceDocument(member.id, absenceValue=true)">
+                                                        @click="updateAbsenceDocument(member.id, presenceValue=true)">
                                                         Présent
                                                     </button>
                                                 </div>
                                                 <div v-else>
                                                     <button 
                                                         class="btn btn-danger" 
-                                                        @click="updateAbsenceDocument(member.id, absenceValue=false)">
+                                                        @click="updateAbsenceDocument(member.id, presenceValue=false)">
                                                         Annuler
                                                     </button>
                                                 </div>
@@ -128,6 +133,10 @@ export default {
         const router = useRouter()
         const meeting = ref(null)
         
+        const openMemberDetails = async (memberId) => {
+            router.push({ name: 'MemberInfos', params: {associationId: props.associationId, memberId: memberId} })
+        }
+
         // getting a meeting doc
         const meetingRef = projectFirestore
             .collection('associations').doc(props.associationId).collection("meetings").doc(props.meetingId)
@@ -166,13 +175,13 @@ export default {
             })
         }
 
-        // update the absence value from payments subcolletcion
-        const updateAbsenceDocument = async (docId, absenceValue) => {
+        // update the presence value from payments subcolletcion
+        const updateAbsenceDocument = async (docId, presenceValue) => {
             const docRef = doc(
                 projectFirestore, "associations", props.associationId, "meetings", props.meetingId, "payments", docId
             )
             const data = {
-                absence: absenceValue
+                presence: presenceValue
             };
 
             updateDoc(docRef, data)
@@ -203,7 +212,8 @@ export default {
         }
 
         return {
-            showForm, showSuccessModal, membersPaymentList, updateDocument, updateAbsenceDocument, updateDelayDocument, meeting
+            showForm, showSuccessModal, membersPaymentList, updateDocument, updateAbsenceDocument, updateDelayDocument, meeting,
+            openMemberDetails
         }
     }
 }

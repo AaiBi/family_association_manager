@@ -5,7 +5,8 @@
                 <div class="card">
                     <div class="card-header text-center">
                         <h2 class="card-title">
-                            Bienvenue dans l'application de gestion des différentes Associations de Pellel Malal
+                            Bienvenu dans Family Association Manager
+                            <!-- Bienvenue dans l'application de gestion des différentes Associations de Pellel Malal -->
                         </h2>
                     </div>
                     <div class="card-body">
@@ -278,11 +279,53 @@
                                         v-model="associationAddresse">
                                 </div>
                                 <div class="mb-3">
-                                    <input 
-                                        type="number" class="form-control" placeholder="Entrer le numéro correspondant à la date de réunion"
-                                        v-model="associationMeetingDate" required>
+                                    <select class="form-select" v-model="associationMeetingDate" required>
+                                        <option disabled value="">Sélectionner une date</option>
+                                        <option>Le 1er</option>
+                                        <option>Le 2</option>
+                                        <option>Le 3</option>
+                                        <option>Le 4</option>
+                                        <option>Le 5</option>
+                                        <option>Le 6</option>
+                                        <option>Le 7</option>
+                                        <option>Le 8</option>
+                                        <option>Le 9</option>
+                                        <option>Le 10</option>
+                                        <option>Le 11</option>
+                                        <option>Le 12</option>
+                                        <option>Le 13</option>
+                                        <option>Le 14</option>
+                                        <option>Le 15</option>
+                                        <option>Le 16</option>
+                                        <option>Le 17</option>
+                                        <option>Le 18</option>
+                                        <option>Le 19</option>
+                                        <option>Le 20</option>
+                                        <option>Le 21</option>
+                                        <option>Le 22</option>
+                                        <option>Le 23</option>
+                                        <option>Le 24</option>
+                                        <option>Le 25</option>
+                                        <option>Le 26</option>
+                                        <option>Le 27</option>
+                                        <option>Le 28</option>
+                                        <option>Le 29</option>
+                                        <option>Le 30</option>
+                                        <option>Le 31</option>
+                                    </select>
                                 </div>
                             </div>
+                            <div class="col-sm-12">
+                                <select class="form-select" v-model="associationCurrency" required>
+                                    <option disabled value="">Sélectionner la monnaie du pays de l'association</option>
+                                    <option>FCFA</option>
+                                    <option>FG</option>
+                                    <option>SSL (Leone)</option>
+                                    <option>Euro</option>
+                                    <option>Dollar</option>
+                                </select>
+                            </div>
+                            <p></p>
                             <button class="btn btn-secondary">Ajouter</button>
                         </form>
 
@@ -392,6 +435,7 @@ export default {
         const associationAddresse = ref('')
         const associationMeetingDate = ref('')
         const accessPassword = ref('')
+        const associationCurrency = ref('')
         const { addDoc, error } = useCollection('associations')
         const success = ref(null)
         const { documents } = getCollection('associations')
@@ -412,7 +456,7 @@ export default {
         }
 
         const handleSubmitPassword = async () => {
-            if (accessPassword.value === "bien") {
+            if (accessPassword.value === "pellelmalal2023") {
                 router.push({ name: 'Association', params: {associationId: associationId.value} })
             }else{
                 showEntryAssociationModal.value = false
@@ -427,13 +471,14 @@ export default {
                 associationCountry: associationCountry.value,
                 associationAddresse: associationAddresse.value,
                 associationMeetingDate: associationMeetingDate.value,
+                associationCurrency: associationCurrency.value,
                 createdAt: timestamp()
             }
 
             await addDoc(newAssociation)
             if (!error.value) {
                 error.value = ''
-                success.value = "Nouvelle association créée avec succès !"
+                showSuccessModal.value = true
                 showForm.value = false
             }else {
                 success.value = ''
@@ -444,7 +489,7 @@ export default {
             associationCountry.value = ''
             associationAddresse.value = ''
             associationMeetingDate.value = ''
-
+            associationCurrency.value = ''
         }
 
         const formattedDocuments = computed(() => {
@@ -459,7 +504,7 @@ export default {
         return {
             showForm, associationName, associationCountry, associationAddresse, associationMeetingDate, handleSubmit, error, success,
             documents, formattedDocuments, showModal, showEntryAssociationModal, accessPassword, associationId, message,
-            handleSubmitPassword, handleClick
+            handleSubmitPassword, handleClick, associationCurrency, showSuccessModal
         }
     }
 }

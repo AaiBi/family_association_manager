@@ -62,7 +62,7 @@
                             <div class="col-sm-4" v-for="meeting in meetingsList" :key="meeting.id">
                                 <div type="button" @click="openMeeting(meeting.id)">
                                     <div class="card text-white bg-secondary mb-3" style="max-width: 18rem;">
-                                        <div class="card-header">{{meeting.createdAt.toDate().toLocaleString("fr")}}</div>
+                                        <div class="card-header">Réunion du {{meeting.createdAt.toDate().toLocaleString("fr")}}</div>
                                         <div class="card-body">
                                             <p class="card-text">
                                                 {{ meeting.subjects }}
@@ -163,11 +163,12 @@ export default {
                         memberPhoneNumber: doc.memberPhoneNumber,
                         memberAddresse: doc.memberAddresse,
                         memberAmount: doc.memberAmount,
+                        memberId: doc.id,
                         createdMonth: monthName,
                         createdYear: nowYear,
                         payment: false,
                         delay: false,
-                        absence: false,
+                        presence: false,
                         createdAt: timestamp()
                     })
                 }

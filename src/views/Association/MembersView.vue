@@ -74,14 +74,12 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr 
-                                        v-for="member in membersList" :key="member.id" align="center" type="button" 
-                                        @click="openMemberDetails(member.id)">
-                                        <td>{{ member.memberFirstname }}</td>
-                                        <td>{{ member.memberLastname }}</td>
-                                        <td>{{ member.memberPhoneNumber }}</td>
-                                        <td>{{ member.memberAddresse }}</td>
-                                        <td>{{ member.memberAmount }}</td>
+                                    <tr v-for="member in membersList" :key="member.id" align="center" type="button">
+                                        <td type="button" @click="openMemberDetails(member.id)">{{ member.memberFirstname }}</td>
+                                        <td type="button" @click="openMemberDetails(member.id)">{{ member.memberLastname }}</td>
+                                        <td type="button" @click="openMemberDetails(member.id)">{{ member.memberPhoneNumber }}</td>
+                                        <td type="button" @click="openMemberDetails(member.id)">{{ member.memberAddresse }}</td>
+                                        <td type="button" @click="openMemberDetails(member.id)">{{ member.memberAmount }}</td>
                                         <td>
                                             <button 
                                                 class="btn btn-secondary text-white" 

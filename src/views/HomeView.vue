@@ -1,7 +1,7 @@
 <template>
   <div class="welcome container">
     <div class="card card-body">
-      <h1><b>Pellel Malal !</b></h1>
+      <h1><b>Family Association Manager !</b></h1>
       <p></p>
       <div v-if="showLogin">
         <h2>Connexion</h2>
